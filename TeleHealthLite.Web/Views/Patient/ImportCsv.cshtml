@@ -1,0 +1,44 @@
+
+@{
+    ViewData["Title"] = "Import Patients from CSV";
+}
+
+<h2>Import Patients from CSV</h2>
+
+<div asp-validation-summary="All" class="text-danger"></div>
+
+<p>
+    Select a CSV file exported from TeleHealth Lite.
+    Existing email addresses will be skipped.
+</p>
+
+<form asp-controller="Patient"
+      asp-action="ImportCsv"
+      method="post"
+      enctype="multipart/form-data">
+
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <label for="csvFile" class="form-label">
+            Select CSV File
+        </label>
+
+        <input type="file"
+               id="csvFile"
+               name="csvFile"
+               accept=".csv"
+               class="form-control"
+               required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Import Patients
+    </button>
+
+    <a asp-controller="Patient"
+       asp-action="Index"
+       class="btn btn-secondary">
+        Cancel
+    </a>
+</form>

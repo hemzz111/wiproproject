@@ -1,0 +1,67 @@
+
+@model IEnumerable<TeleHealthLite.Web.Models.Patient>
+
+@{
+    ViewData["Title"] = "Patients";
+}
+
+<h2>Patients</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<div class="mb-3">
+    <a asp-controller="Patient"
+       asp-action="Create"
+       class="btn btn-primary">
+        Register New Patient
+    </a>
+
+    <a asp-controller="Patient"
+       asp-action="ExportCsv"
+       class="btn btn-success">
+        Export Patients to CSV
+    </a>
+
+    <a asp-controller="Patient"
+       asp-action="ImportCsv"
+       class="btn btn-info">
+        Import Patients from CSV
+    </a>
+</div>
+
+@if (Model != null && Model.Any())
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Date of Birth</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var patient in Model)
+            {
+                <tr>
+                    <td>@patient.Id</td>
+                    <td>@patient.FullName</td>
+                    <td>@patient.Email</td>
+                    <td>@patient.Phone</td>
+                    <td>@patient.DateOfBirth.ToString("dd-MM-yyyy")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No patients registered yet.</p>
+}

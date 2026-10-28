@@ -1,0 +1,102 @@
+
+@model IEnumerable<TeleHealthLite.Web.Models.Prescription>
+
+@{
+    ViewData["Title"] = "Prescription History";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Prescription History</h2>
+        <a asp-action="Create" class="btn btn-primary">
+            Create Prescription
+        </a>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            No prescriptions have been saved yet.
+        </div>
+    }
+    else
+    {
+        @foreach (var prescription in Model)
+        {
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between">
+                    <strong>
+                        Prescription #@prescription.Id
+                    </strong>
+                    <span>
+                        @prescription.PrescribedDate.ToString("dd-MM-yyyy hh:mm tt")
+                    </span>
+                </div>
+
+                <div class="card-body">
+                    <p>
+                        <strong>Patient:</strong>
+                        @(prescription.Consultation?.Patient?.FullName ?? "Not available")
+                    </p>
+
+                    <p>
+                        <strong>Doctor:</strong>
+                        @(prescription.Consultation?.Doctor?.FullName ?? "Not available")
+                    </p>
+
+                    <p>
+                        <strong>Appointment:</strong>
+                        @(prescription.Consultation?.AppointmentDate.ToString("dd-MM-yyyy hh:mm tt") ?? "Not available")
+                    </p>
+
+                    <h5>Medicines</h5>
+
+                    @if (prescription.PrescriptionMedicines.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Medicine</th>
+                                        <th>Dosage</th>
+                                        <th>Frequency</th>
+                                        <th>Duration</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in prescription.PrescriptionMedicines)
+                                    {
+                                        <tr>
+                                            <td>
+                                                @(item.Medicine?.Name ?? "Not available")
+                                                @if (!string.IsNullOrWhiteSpace(item.Medicine?.Strength))
+                                                {
+                                                    <span>(@item.Medicine.Strength)</span>
+                                                }
+                                            </td>
+                                            <td>@item.Dosage</td>
+                                            <td>@item.Frequency</td>
+                                            <td>@item.DurationDays days</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No medicines recorded.</p>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(prescription.Instructions))
+                    {
+                        <p>
+                            <strong>Instructions:</strong>
+                            @prescription.Instructions
+                        </p>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>

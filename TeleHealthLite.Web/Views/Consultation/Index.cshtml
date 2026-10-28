@@ -1,0 +1,52 @@
+
+@model IEnumerable<TeleHealthLite.Web.Models.Consultation>
+
+@{
+    ViewData["Title"] = "Consultations";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Consultation Bookings</h2>
+        <a asp-action="Create" class="btn btn-primary">
+            Book Consultation
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            No consultations have been booked yet.
+        </div>
+    }
+    else
+    {
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Patient</th>
+                    <th>Doctor</th>
+                    <th>Appointment Date</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var consultation in Model)
+                {
+                    <tr>
+                        <td>@consultation.Patient?.FullName</td>
+                        <td>@consultation.Doctor?.FullName</td>
+                        <td>@consultation.AppointmentDate.ToString("dd-MM-yyyy hh:mm tt")</td>
+                        <td>@consultation.Reason</td>
+                        <td>
+                            <span class="badge bg-warning text-dark">
+                                @consultation.Status
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

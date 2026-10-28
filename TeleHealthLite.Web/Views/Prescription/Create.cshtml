@@ -1,0 +1,255 @@
+
+@model TeleHealthLite.Web.Models.Prescription
+
+@{
+    ViewData["Title"] = "Create Prescription";
+}
+
+<div class="container mt-4">
+    <h2>Create E-Prescription</h2>
+    <p class="text-muted">Select a consultation and add the prescribed medicines.</p>
+    <hr />
+
+    <form asp-controller="Prescription" asp-action="Create" method="post">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+        <div class="mb-3">
+            <label class="form-label">Consultation</label>
+            <select name="consultationId"
+                    asp-items="ViewBag.Consultations"
+                    class="form-select"
+                    required>
+                <option value="">-- Select Consultation --</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Search Medicine</label>
+            <input type="text"
+                   id="medicineSearch"
+                   class="form-control"
+                   placeholder="Type a medicine name..." />
+
+            <div id="searchResults" class="list-group mt-2"></div>
+            <small class="text-muted">
+                Select a medicine from the search results to add it below.
+            </small>
+        </div>
+
+        <h5 class="mt-4">Selected Medicines</h5>
+
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Medicine</th>
+                        <th>Dosage</th>
+                        <th>Frequency</th>
+                        <th>Duration (days)</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="selectedMedicines">
+                    <tr id="emptyRow">
+                        <td colspan="5" class="text-center text-muted">
+                            No medicines added yet.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Prescription Instructions</label>
+            <textarea name="instructions"
+                      class="form-control"
+                      rows="3"
+                      maxlength="1000"
+                      placeholder="Enter additional instructions"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            Save Prescription
+        </button>
+
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        const searchInput = document.getElementById("medicineSearch");
+        const searchResults = document.getElementById("searchResults");
+        const selectedMedicines = document.getElementById("selectedMedicines");
+
+        const searchUrl = '@Url.Action("SearchMedicines", "Prescription")';
+        const addedMedicineIds = new Set();
+
+        let medicineIndex = 0;
+        let searchTimeout;
+
+        searchInput.addEventListener("input", function () {
+            clearTimeout(searchTimeout);
+
+            const term = searchInput.value.trim();
+            searchResults.replaceChildren();
+
+            if (term.length < 2) {
+                return;
+            }
+
+            searchTimeout = setTimeout(async function () {
+                try {
+                    const response = await fetch(
+                        searchUrl + "?term=" + encodeURIComponent(term)
+                    );
+
+                    if (!response.ok) {
+                        throw new Error("Medicine search failed.");
+                    }
+
+                    const medicines = await response.json();
+                    searchResults.replaceChildren();
+
+                    medicines.forEach(function (medicine) {
+                        if (addedMedicineIds.has(medicine.id)) {
+                            return;
+                        }
+
+                        const button = document.createElement("button");
+                        button.type = "button";
+                        button.className = "list-group-item list-group-item-action";
+
+                        const details = [
+                            medicine.name,
+                            medicine.strength,
+                            medicine.dosageForm
+                        ].filter(Boolean).join(" - ");
+
+                        button.textContent = details;
+
+                        button.addEventListener("click", function () {
+                            addMedicine(medicine);
+                            searchResults.replaceChildren();
+                            searchInput.value = "";
+                        });
+
+                        searchResults.appendChild(button);
+                    });
+
+                    if (searchResults.children.length === 0) {
+                        const message = document.createElement("div");
+                        message.className = "list-group-item text-muted";
+                        message.textContent = "No new matching medicines found.";
+                        searchResults.appendChild(message);
+                    }
+                } catch (error) {
+                    searchResults.replaceChildren();
+                    const message = document.createElement("div");
+                    message.className = "list-group-item text-danger";
+                    message.textContent = "Unable to search medicines. Please try again.";
+                    searchResults.appendChild(message);
+                }
+            }, 300);
+        });
+
+        function addMedicine(medicine) {
+            if (addedMedicineIds.has(medicine.id)) {
+                return;
+            }
+
+            const emptyRow = document.getElementById("emptyRow");
+            if (emptyRow) {
+                emptyRow.remove();
+            }
+
+            addedMedicineIds.add(medicine.id);
+
+            const row = document.createElement("tr");
+            const displayName = [
+                medicine.name,
+                medicine.strength,
+                medicine.dosageForm
+            ].filter(Boolean).join(" - ");
+
+            const nameCell = document.createElement("td");
+            nameCell.textContent = displayName;
+
+            const medicineIdInput = document.createElement("input");
+            medicineIdInput.type = "hidden";
+            medicineIdInput.name = "medicineIds";
+            medicineIdInput.value = medicine.id;
+            nameCell.appendChild(medicineIdInput);
+
+            const dosageCell = document.createElement("td");
+            const dosageInput = document.createElement("input");
+            dosageInput.name = "dosages";
+            dosageInput.className = "form-control";
+            dosageInput.maxLength = 100;
+            dosageInput.required = true;
+            dosageInput.placeholder = "e.g. 1 tablet";
+            dosageCell.appendChild(dosageInput);
+
+            const frequencyCell = document.createElement("td");
+            const frequencyInput = document.createElement("input");
+            frequencyInput.name = "frequencies";
+            frequencyInput.className = "form-control";
+            frequencyInput.maxLength = 100;
+            frequencyInput.required = true;
+            frequencyInput.placeholder = "e.g. As prescribed";
+            frequencyCell.appendChild(frequencyInput);
+
+            const durationCell = document.createElement("td");
+            const durationInput = document.createElement("input");
+            durationInput.type = "number";
+            durationInput.name = "durations";
+            durationInput.className = "form-control";
+            durationInput.min = 1;
+            durationInput.max = 365;
+            durationInput.required = true;
+            durationInput.value = 1;
+            durationCell.appendChild(durationInput);
+
+            const actionCell = document.createElement("td");
+            const removeButton = document.createElement("button");
+            removeButton.type = "button";
+            removeButton.className = "btn btn-outline-danger btn-sm";
+            removeButton.textContent = "Remove";
+
+            removeButton.addEventListener("click", function () {
+                addedMedicineIds.delete(medicine.id);
+                row.remove();
+
+                if (selectedMedicines.children.length === 0) {
+                    const newEmptyRow = document.createElement("tr");
+                    newEmptyRow.id = "emptyRow";
+
+                    const cell = document.createElement("td");
+                    cell.colSpan = 5;
+                    cell.className = "text-center text-muted";
+                    cell.textContent = "No medicines added yet.";
+
+                    newEmptyRow.appendChild(cell);
+                    selectedMedicines.appendChild(newEmptyRow);
+                }
+            });
+
+            actionCell.appendChild(removeButton);
+
+            row.append(
+                nameCell,
+                dosageCell,
+                frequencyCell,
+                durationCell,
+                actionCell
+            );
+
+            selectedMedicines.appendChild(row);
+            medicineIndex++;
+        }
+    </script>
+}

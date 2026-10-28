@@ -1,0 +1,79 @@
+
+@model IEnumerable<TeleHealthLite.Web.Models.FollowUp>
+
+@{
+    ViewData["Title"] = "Follow-up Reminders";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Follow-up Reminders</h2>
+        <a asp-action="Create" class="btn btn-primary">
+            Add Follow-up
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            No follow-up reminders have been added yet.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Patient</th>
+                        <th>Reminder Date</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var followUp in Model)
+                    {
+                        <tr>
+                            <td>@(followUp.Patient?.FullName ?? "Not available")</td>
+                            <td>@followUp.ReminderDate.ToString("dd-MM-yyyy hh:mm tt")</td>
+                            <td>@followUp.Description</td>
+                            <td>
+                                @if (followUp.IsCompleted)
+                                {
+                                    <span class="badge bg-success">Completed</span>
+                                }
+                                else if (followUp.ReminderDate < DateTime.Now)
+                                {
+                                    <span class="badge bg-danger">Overdue</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!followUp.IsCompleted)
+                                {
+                                    <form asp-action="MarkCompleted"
+                                          asp-route-id="@followUp.Id"
+                                          method="post">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-success btn-sm">
+                                            Mark Completed
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Done</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

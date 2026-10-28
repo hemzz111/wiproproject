@@ -1,0 +1,43 @@
+
+@model TeleHealthLite.Web.Models.Consultation
+
+@{
+    ViewData["Title"] = "Consultation Details";
+}
+
+<h2>Consultation Details</h2>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <p>
+            <strong>Consultation ID:</strong>
+            @Model.Id
+        </p>
+
+        <p>
+            <strong>Patient:</strong>
+            @Model.Patient?.FullName
+        </p>
+
+        <p>
+            <strong>Doctor:</strong>
+            @Model.Doctor?.FullName
+        </p>
+
+        <p>
+            <strong>Appointment Date:</strong>
+            @Model.AppointmentDate.ToString("dd-MM-yyyy HH:mm")
+        </p>
+
+        <p>
+            <strong>Status:</strong>
+            @Model.Status
+        </p>
+
+        <a asp-controller="Consultation"
+           asp-action="Index"
+           class="btn btn-secondary">
+            Back to Consultations
+        </a>
+    </div>
+</div>
